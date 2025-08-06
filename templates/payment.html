@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Make Payment</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #80deea);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .payment-container {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .payment-container h2 {
+      color: #0077b6;
+      margin-bottom: 20px;
+    }
+
+    .payment-container p {
+      font-size: 16px;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .amount-details {
+      margin-bottom: 30px;
+      padding: 15px;
+      background-color: #f0f8ff;
+      border-radius: 8px;
+      border: 1px solid #b3e5fc;
+    }
+
+    .amount-details strong {
+      display: block;
+      font-size: 18px;
+      color: #0077b6;
+      margin-bottom: 8px;
+    }
+
+    .amount-details span {
+      font-size: 24px;
+      font-weight: bold;
+      color: #004d7a;
+    }
+
+    .pay-btn {
+      background-color: #0077b6;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .pay-btn:hover {
+      background-color: #023e8a;
+    }
+
+    .note {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .email-info {
+      margin-top: 25px;
+      font-size: 14px;
+      color: #005f7a;
+      background-color: #e0f2f7;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #b2ebf2;
+    }
+  </style>
+</head>
+<body>
+  <div class="payment-container">
+    <h2>Complete Your Payment</h2>
+    <p>Click the button below to proceed with your secure payment.</p>
+
+    <div class="amount-details">
+      <strong>Total Booking Amount:</strong>
+      <span>₹{{ "%.2f"|format(total_amount) }}</span>
+      <br><br>
+      <strong>Advance Payment Required (10%):</strong>
+      <span>₹{{ "%.2f"|format(advance_amount) }}</span>
+    </div>
+
+    <!-- Replace the link below with your Razorpay/GPay/UPI link -->
+    <a href="https://razorpay.me/@PlanNbook" class="pay-btn" target="_blank">Pay Now</a>
+
+    <div class="note">
+      After completing the payment, please take a screenshot or save the reference ID.
+    </div>
+
+    <div class="email-info">
+      We will send you an email shortly to confirm your booking and arrange an outside meeting to finalize all details.
+    </div>
+  </div>
+</body>
+</html>

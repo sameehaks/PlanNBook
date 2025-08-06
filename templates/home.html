@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Plan N Book</title>
+  <link rel="icon" type="image/png" href="/static/images/logop.jpg">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ✅ Flash Message Always Visible (Top Center) -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-message" style="color: rgb(215, 61, 61); font-weight: 600; text-align: center; margin-top: 20px;">
+        {{ messages[0] }}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <nav class="navbar">
+    <div class="logo">Plan N Book</div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      {% if 'email' in session %}
+        <a href="/themes">Themes</a>
+        <a href="/decor">Decor</a>
+        <a href="/foodmenu">Food Menu</a>
+        <a href="/booking">Booking</a>
+        <span class="user-icon">👤 {{ session['email'] }}</span>
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="#" class="login-trigger">Themes</a>
+        <a href="#" class="login-trigger">Decor</a>
+        <a href="#" class="login-trigger">Food Menu</a>
+        <a href="#" class="login-trigger">Booking</a>
+        <a href="#" class="login-trigger">Login</a>
+        <a href="{{ url_for('register') }}">Register</a>
+        <a href="#" class="login-trigger">Admin</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <section class="hero-section">
+    <div class="overlay">
+      <h1>We Are Plan N Book</h1>
+      <p>Book themes, decor, and food with ease. Create memorable events.</p>
+      <div class="button-group">
+        {% if 'email' in session %}
+          <a href="/booking">Book Now</a>
+          <a href="/themes">Explore Themes</a>
+        {% else %}
+          <a href="#" class="login-trigger">Book Now</a>
+          <a href="#" class="login-trigger">Explore Themes</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="gallery">
+    <h2>Our Event Highlights</h2>
+    <div class="event-cards">
+      <div class="card">
+        <img src="/static/images/wedding.jpeg" alt="Wedding Ceremony">
+        <p><strong>Wedding Ceremony:</strong> A royal celebration with floral decor.</p>
+      </div>
+      <div class="card">
+        <img src="/static/images/birthday.jpeg" alt="Birthday Party">
+        <p><strong>Birthday Bash:</strong> Colorful setup for unforgettable moments.</p>
+      </div>
+      <div class="card">
+        <img src="/static/images/corporate.jpeg" alt="Corporate Event">
+        <p><strong>Corporate Event:</strong> Professional and classy arrangements.</p>
+      </div>
+      <div class="card">
+        <img src="/static/images/engagement.jpeg" alt="Engagement Ceremony">
+        <p><strong>Engagement:</strong> A touch of tradition and elegance.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2025 Plan N Book. All rights reserved.
+  </footer>
+
+  {% if 'email' not in session %}
+    <!-- Modal Background -->
+    <div id="modalBackground" class="modal-background"></div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+        <span id="closeModal" class="close-button">&times;</span>
+        <h2>Login</h2>
+
+        <form method="POST" action="/login">
+          <label for="email">Email:</label>
+          <input type="email" name="email" required placeholder="Enter your email">
+
+          <label for="password">Password:</label>
+          <input type="password" name="password" required placeholder="Enter your password">
+
+          <button type="submit">Login</button>
+
+          <p style="margin-top: 10px; font-size: 14px;">
+            Not registered yet? 
+            <a href="{{ url_for('register') }}" style="color: #5a4234; text-decoration: underline;">Register here</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldLogin = urlParams.get("login");
+
+      {% if 'email' not in session %}
+      const loginLinks = document.querySelectorAll(".login-trigger");
+      const modal = document.getElementById("loginModal");
+      const modalBg = document.getElementById("modalBackground");
+      const closeBtn = document.getElementById("closeModal");
+
+      loginLinks.forEach(link => {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          modal.style.display = "block";
+          modalBg.style.display = "block";
+        });
+      });
+
+      closeBtn.addEventListener("click", function () {
+        modal.style.display = "none";
+        modalBg.style.display = "none";
+      });
+
+      modalBg.addEventListener("click", function () {
+        modal.style.display = "none";
+        modalBg.style.display = "none";
+      });
+
+      if (shouldLogin === "true") {
+        modal.style.display = "block";
+        modalBg.style.display = "block";
+      }
+      {% endif %}
+
+      // ✅ Auto-hide flash message or alert after 3 seconds
+      const fadeOut = (selector) => {
+        const el = document.querySelector(selector);
+        if (el) {
+          setTimeout(() => {
+            el.style.transition = 'opacity 0.5s ease';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 500);
+          }, 3000);
+        }
+      };
+
+      fadeOut('.flash-message');
+      fadeOut('.alert-banner');
+    });
+  </script>
+
+</body>
+</html>
+

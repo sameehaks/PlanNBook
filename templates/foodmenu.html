@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Food Menu - Plan N Book</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background: url('/static/images/food_menu/food_menu.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #5a4234;
+        }
+
+        .nav-links a {
+            margin-left: 18px;
+            text-decoration: none;
+            color: #5a4234;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .user-icon {
+            margin-left: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .food-menu-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .menu-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            color: #2c2c2c;
+            margin-bottom: 10px;
+        }
+
+        .theme-select-form {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .theme-select-form select {
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-category-section {
+            margin-bottom: 25px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: rgba(249, 249, 249, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .category-heading {
+            font-size: 24px;
+            font-family: 'Playfair Display', serif;
+            color: #a67c52;
+            margin-top: 0;
+            border-bottom: 2px solid #a67c52;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .food-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .food-item:last-child {
+            border-bottom: none;
+        }
+
+        .food-item input[type="checkbox"] {
+            margin-right: 15px;
+            min-width: 20px;
+            min-height: 20px;
+            cursor: pointer;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-details strong {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .item-details .description {
+            display: block;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .item-details .price {
+            font-weight: bold;
+            color: #5a4234;
+        }
+
+        .save-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .save-button button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #a67c52;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .save-button button:hover {
+            background-color: #8c6847;
+        }
+
+        .proceed-button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .proceed-button-container a {
+            text-decoration: none;
+            padding: 12px 25px;
+            background-color: #5a4234;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .proceed-button-container a:hover {
+            background-color: #3d2e24;
+        }
+
+        .flash-message {
+            text-align: center;
+            color: green;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Plan N Book</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            {% if 'email' in session %}
+                <a href="/themes">Themes</a>
+                <a href="/decor">Decor</a>
+                <a href="/foodmenu">Food Menu</a>
+                <a href="/booking">Booking</a>
+                <span class="user-icon">👤 {{ session['email'] }}</span>
+                <a href="/logout">Logout</a>
+            {% else %}
+                <a href="/login">Login</a>
+                <a href="/register">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-message">{{ messages[0] }}</div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="food-menu-container">
+        <div class="menu-header">
+            <h2>Select Food Menu</h2>
+            <p>Choose a theme to view the available food options.</p>
+        </div>
+
+        <div class="theme-select-form">
+            <form method="GET" action="{{ url_for('foodmenu') }}">
+                <select name="theme" onchange="this.form.submit()">
+                    <option disabled {% if not selected_theme %}selected{% endif %}>Choose a Theme...</option>
+                    {% for theme in available_themes %}
+                        <option value="{{ theme }}" {% if theme == selected_theme %}selected{% endif %}>{{ theme }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        {% if selected_theme %}
+            <h3 style="text-align: center; font-size: 28px; color: #5a4234; margin-top: 30px;">Menu for: {{ selected_theme }}</h3>
+
+            <form method="POST" action="{{ url_for('select_food') }}">
+                <input type="hidden" name="theme_name" value="{{ selected_theme }}">
+
+                {% for category, items in menu.items() %}
+                    <div class="menu-category-section">
+                        <h4 class="category-heading">{{ category }}</h4>
+                        {% for item in items %}
+                            <div class="food-item">
+                                <input type="checkbox" name="food_ids" value="{{ item['id'] }}">
+                                <div class="item-details">
+                                    <strong>{{ item['name'] }}</strong>
+                                    <span class="price"> - ₹{{ item['price'] }}</span>
+                                    <span class="description">{{ item['description'] }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="save-button">
+                    <button type="submit">Save Selection for {{ selected_theme }}</button>
+                </div>
+            </form>
+
+            <div class="proceed-button-container">
+                <a href="/booking">Proceed to Booking</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        setTimeout(function () {
+            var flash = document.querySelector('.flash-message');
+            if (flash) {
+                flash.style.display = 'none';
+            }
+        }, 3000);
+    </script>
+
+</body>
+</html>

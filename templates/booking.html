@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Summary</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f4f4f4; /* Reverted to the original background color */
+            margin: 0;
+            padding: 0;
+        }
+
+        .booking-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            /* Updated for a semi-transparent, blurred effect */
+            background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+            backdrop-filter: blur(5px); /* Adds a blur effect to the background */
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .booking-container h1 {
+            text-align: center;
+            color: #5a4234;
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .section-heading {
+            color: #a67c52;
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: #5a4234;
+        }
+
+        .total-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 2px solid #5a4234;
+        }
+
+        .total-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #5a4234;
+        }
+
+        .total-amount {
+            font-size: 22px;
+            font-weight: bold;
+            color: #a67c52;
+        }
+
+        .book-button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .book-button {
+            padding: 12px 30px;
+            background-color: #a67c52;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .book-button:hover {
+            background-color: #8c6847;
+        }
+        
+        .placeholder-message {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .placeholder-message a {
+            color: #a67c52;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .user-details-form label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #5a4234;
+        }
+        
+        .user-details-form input,
+        .user-details-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+        }
+
+        .user-details-form textarea {
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+    <!-- Flash Message Block -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-message" style="color: rgb(215, 61, 61); font-weight: 600; text-align: center; margin-top: 20px;">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Navbar from home.html -->
+    <nav class="navbar">
+      <div class="logo">Plan N Book</div>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        {% if 'email' in session %}
+          <a href="/themes">Themes</a>
+          <a href="/decor">Decor</a>
+          <a href="/foodmenu">Food Menu</a>
+          <a href="/booking">Booking</a>
+          <span class="user-icon">👤 {{ session['email'] }}</span>
+          <a href="/logout">Logout</a>
+        {% else %}
+          <a href="{{ url_for('home', login='true') }}" class="login-trigger">Login</a>
+        {% endif %}
+      </div>
+    </nav>
+
+    <div class="booking-container">
+        <h1>Your Booking Summary</h1>
+        
+        <form action="{{ url_for('book_event') }}" method="POST">
+            {% if selected_theme %}
+                <h2 class="section-heading">Selected Theme</h2>
+                <div class="list-item">
+                    <span class="item-name">{{ selected_theme[1] }}</span>
+                </div>
+            {% else %}
+                <div class="placeholder-message">
+                    <p>No theme has been selected yet. <a href="{{ url_for('themes') }}">Select a Theme</a></p>
+                </div>
+            {% endif %}
+
+            {% if selected_decor %}
+                <h2 class="section-heading">Selected Decor</h2>
+                {% for decor in selected_decor %}
+                    <div class="list-item">
+                        <span class="item-name">{{ decor[1] }} Decor</span>
+                        <span class="item-price">₹{{ decor[2] }}</span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="placeholder-message">
+                    <p>No decor has been selected yet. <a href="{{ url_for('decor') }}">Select Decor</a></p>
+                </div>
+            {% endif %}
+
+            {% if selected_food %}
+                <h2 class="section-heading">Selected Food</h2>
+                {% for food in selected_food %}
+                    <div class="list-item">
+                        <span class="item-name">{{ food[0] }}</span>
+                        <span class="item-price">₹{{ food[1] }}</span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="placeholder-message">
+                    <p>No food items have been selected yet. <a href="{{ url_for('foodmenu') }}">Select Food</a></p>
+                </div>
+            {% endif %}
+
+            <div class="total-summary">
+                <span class="total-text">Total Amount:</span>
+                <span class="total-amount">₹{{ "{:,.2f}".format(total_amount) }}</span>
+            </div>
+
+            <div class="user-details-form">
+                <h2 class="section-heading">Event & Contact Details</h2>
+                <label for="event_date">Event Date:</label>
+                <input type="date" id="event_date" name="event_date" required>
+                
+                <label for="event_time">Event Time:</label>
+                <input type="time" id="event_time" name="event_time" required>
+                
+                <label for="guests">Number of Guests:</label>
+                <input type="number" id="guests" name="guests" min="1" required>
+
+                <label for="phone_number">Phone Number:</label>
+                <input type="tel" id="phone_number" name="phone_number" pattern="[0-9]{10}" placeholder="e.g., 1234567890" required>
+                
+                <label for="event_address">Event Address:</label>
+                <textarea id="event_address" name="event_address" rows="4" required></textarea>
+                
+                <label for="your_location">Your Location:</label>
+                <input type="text" id="your_location" name="your_location" required>
+                
+                <label for="notes">Additional Notes:</label>
+                <textarea id="notes" name="notes" rows="4"></textarea>
+            </div>
+            
+            <div class="book-button-container">
+                <button type="submit" class="book-button">Proceed to Payment</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select a Theme</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 12px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #5a4234;
+    }
+
+    .nav-links a {
+      margin-left: 18px;
+      text-decoration: none;
+      color: #5a4234;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .user-icon {
+      margin-left: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .theme-header-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 40px;
+      margin-bottom: 20px;
+    }
+
+    .theme-heading {
+      font-size: 32px;
+      font-family: 'Playfair Display', serif;
+      font-weight: bold;
+      color: #2c2c2c;
+      background-color: rgba(255, 255, 255, 0.75);
+      padding: 12px 24px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .themes-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 0 40px 40px;
+    }
+
+    .theme-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 320px;
+      overflow: hidden;
+    }
+
+    .theme-images {
+      display: flex;
+      overflow-x: auto;
+    }
+
+    .theme-images img {
+      height: 180px;
+      width: 100%;
+      object-fit: cover;
+    }
+
+    .theme-content {
+      padding: 15px;
+    }
+
+    .theme-content h3 {
+      margin-top: 0;
+      color: #5a4234;
+    }
+
+    .theme-content p {
+      font-size: 14px;
+      margin: 10px 0;
+    }
+
+    .theme-content form button {
+      padding: 8px 16px;
+      background-color: #a67c52;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .theme-content form button.selected {
+      background-color: #e32a7a;
+    }
+
+    .flash-message {
+      text-align: center;
+      color: green;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="navbar">
+    <div class="logo">Plan N Book</div>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      {% if 'email' in session %}
+        <a href="/themes">Themes</a>
+        <a href="/decor">Decor</a>
+        <a href="/foodmenu">Food Menu</a>
+        <a href="/booking">Booking</a>
+        <span class="user-icon">👤 {{ session['email'] }}</span>
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- Heading -->
+  <div class="theme-header-container">
+    <h2 class="theme-heading">Select a Theme for Your Event</h2>
+  </div>
+
+  <!-- Flash message -->
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-message">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Theme Cards -->
+  <div class="themes-grid">
+    {% for theme in themes %}
+      <div class="theme-card">
+        <div class="theme-images">
+          {% if theme.image1 %}<img src="{{ url_for('static', filename='images/themes/' + theme.image1) }}">{% endif %}
+          {% if theme.image2 %}<img src="{{ url_for('static', filename='images/themes/' + theme.image2) }}">{% endif %}
+          {% if theme.image3 %}<img src="{{ url_for('static', filename='images/themes/' + theme.image3) }}">{% endif %}
+        </div>
+        <div class="theme-content">
+          <h3>{{ theme.name }}</h3>
+          <p>{{ theme.description }}</p>
+          <form action="{{ url_for('select_theme') }}" method="POST">
+            <input type="hidden" name="theme_id" value="{{ theme.id }}">
+            <input type="hidden" name="action" value="{{ 'deselect' if theme.id in selected_theme_ids else 'select' }}">
+            <button type="submit" class="{{ 'selected' if theme.id in selected_theme_ids else '' }}">
+              {{ 'Selected (Click to Deselect)' if theme.id in selected_theme_ids else 'Select' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Proceed Button -->
+  <div style="text-align:center; margin-top: 30px;">
+    <a href="/decor" style="text-decoration: none; padding: 10px 20px; background: #a67c52; color: white; border-radius: 5px;">
+      Proceed to Decor
+    </a>
+  </div>
+
+  <script>
+    setTimeout(function() {
+      var flash = document.querySelector('.flash-message');
+      if (flash) {
+        flash.style.display = 'none';
+      }
+    }, 3000); // hide flash after 3 seconds
+  </script>
+</body>
+</html>

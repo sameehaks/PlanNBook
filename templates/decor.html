@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Select Decor</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body {
+      font-family: 'Open Sans', sans-serif;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+    .navbar {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 15px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #5a4234;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      margin-left: 20px;
+    }
+    .section-heading {
+      font-size: 30px;
+      color: #a67c52;
+      font-weight: bold;
+      background-color: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(6px);
+      padding: 10px 20px;
+      border-radius: 10px;
+      display: inline-block;
+      margin: 30px auto 10px;
+      text-align: center;
+    }
+    .decor-section {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 0 40px;
+    }
+    .decor-options {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+    }
+    .decor-card {
+      background-color: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 300px;
+      text-align: center;
+    }
+    .decor-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      margin-bottom: 8px;
+      border-radius: 8px;
+    }
+    .price-tag {
+      font-weight: bold;
+      color: #333;
+      margin: 8px 0;
+    }
+    .decor-card form button {
+      margin-top: 8px;
+      padding: 8px 16px;
+      background-color: #a67c52;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .decor-card form button.selected {
+      background-color: #e91e63;
+    }
+    .flash-message {
+      text-align: center;
+      color: green;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .food-section {
+      text-align: center;
+      padding: 40px;
+      background-color: #fff6f0;
+    }
+    .food-section a {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #a67c52;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">Plan N Book</div>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <span>👤 {{ session['email'] }}</span>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-message">{{ messages[0] }}</div>
+  {% endif %}
+{% endwith %}
+
+{% set folder_map = {
+  'Royal Wedding': 'wedding',
+  'Engagement Ceremony': 'engage',
+  'Birthday Bash': 'birthday',
+  'Bollywood Night': 'bollywood',
+  'Beach Resort': 'beach',
+  'Corporate Event': 'corporate',
+  'Haldi': 'haldi',
+  'Mehendi': 'mehendi'
+} %}
+
+{% set image_prefix_map = {
+  'Royal Wedding': 'royal',
+  'Engagement Ceremony': 'engage',
+  'Birthday Bash': 'birthday',
+  'Bollywood Night': 'bolly',
+  'Beach Resort': 'beach',
+  'Corporate Event': 'corporate',
+  'Haldi': 'haldi',
+  'Mehendi': 'mehendi'
+} %}
+
+{% for theme in themes %}
+  {% set folder = folder_map[theme] %}
+  {% set prefix = image_prefix_map[theme] %}
+  <div id="{{ theme | replace(' ', '_') }}" class="decor-section">
+    <h2 class="section-heading">{{ theme }} Decor Options</h2>
+    <div class="decor-options">
+      {% for decor_type in ['Simple', 'Elegant', 'Premium'] %}
+        {% for i in range(1, 5) %}
+          {% set image_name = prefix ~ '_' ~ decor_type|lower ~ i ~ '.jpeg' %}
+          {% set price = image_prices[image_name] %}
+          <div class="decor-card">
+            <h4>{{ decor_type }} Decor</h4>
+            <img src="{{ url_for('static', filename='images/decor/' ~ folder ~ '/' ~ image_name) }}" alt="{{ decor_type }} image {{ i }}">
+            <div class="price-tag">Price: {{ price }}</div>
+            <form action="{{ url_for('select_decor') }}#{{ theme | replace(' ', '_') }}" method="POST">
+              <input type="hidden" name="theme" value="{{ theme }}">
+              <input type="hidden" name="decor_type" value="{{ decor_type }}">
+              <input type="hidden" name="image" value="{{ image_name }}">
+              <input type="hidden" name="price" value="{{ price }}">
+              {% if image_name in selected_image_names %}
+                <button type="submit" name="action" value="deselect" class="selected">selected</button>
+              {% else %}
+                <button type="submit" name="action" value="select">Select This</button>
+              {% endif %}
+            </form>
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+{% endfor %}
+
+<div class="food-section">
+  <h2>Food Menu Options</h2>
+  <p>Select a food package after choosing your decor.</p>
+  <a href="/foodmenu">Go to Food Menu</a>
+</div>
+
+<script>
+  setTimeout(function() {
+    var flash = document.querySelector('.flash-message');
+    if (flash) {
+      flash.style.display = 'none';
+    }
+  }, 3000);
+</script>
+
+</body>
+</html>
