@@ -5,25 +5,26 @@ import datetime
 import os
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer as Serializer
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 # Use a strong, random secret key for session management
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 
-# Flask-Mail configuration - **Replace with your email and app password**
+# Flask-Mail configuration - Use environment variables
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'shammishaikh29@gmail.com'  # <-- Enter your email here
-app.config['MAIL_PASSWORD'] = 'xjampcbhpihlwvgw'   # <-- Enter your app password here
+app.config['shammishaikh29@gmail.com'] = os.environ.get('MAIL_USERNAME')
+app.config['xjampcbhpihlwvgw'] = os.environ.get('MAIL_PASSWORD')
 mail = Mail(app)
 
-# Database Connection configuration for PythonAnywhere
+# Database Connection configuration - Use environment variables
 db_config = {
-    'host': "sameehaks.mysql.pythonanywhere-services.com",
-    'user': "sameehaks",
-    'password': "plannbooksaal",  # Replace this with your actual password
-    'database': "sameehaks$plannbook_db",
+    'host': os.environ.get('sameehaks.mysql.pythonanywhere-services.com'),
+    'user': os.environ.get('sameehaks'),
+    'password': os.environ.get('plannbooksaal'),
+    'database': os.environ.get('sameehaks$plannbook_db'),
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor
 }
@@ -32,16 +33,17 @@ def get_db_connection():
     """Establishes a new database connection for a request."""
     return pymysql.connect(**db_config)
 
-def get_reset_token(user_id, expires_sec=1800):
+def get_reset_token(user_id):
     s = Serializer(app.secret_key)
-    return s.dumps({'user_id': user_id})
+    return s.dumps({'user_id': user_id}, salt='password-reset-salt')
 
 def verify_reset_token(token):
-    s = Serializer(app.secret_key)
+    s = Serializer(app.secret_key, salt='password-reset-salt')
     conn = None
     cursor = None
     try:
-        user_id = s.loads(token)['user_id']
+        data = s.loads(token, max_age=1800)
+        user_id = data['user_id']
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("SELECT id, name, email, password FROM users WHERE id = %s", (user_id,))
@@ -53,10 +55,8 @@ def verify_reset_token(token):
         print(f"Token verification error: {e}")
         return None
     finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 # --- Routes ---
 
@@ -77,6 +77,9 @@ def register():
         name = request.form['name']
         email = request.form['email']
         password = request.form['password']
+        
+        # --- FIX: Hash the password before storing it ---
+        hashed_password = generate_password_hash(password)
 
         conn = None
         cursor = None
@@ -92,8 +95,8 @@ def register():
                 flash("Email already registered! Try logging in.", 'warning')
                 return redirect(url_for('home'))
 
-            # Insert new user into the database
-            cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, password))
+            # Insert new user into the database with the HASHED password
+            cursor.execute("INSERT INTO users (name, email, password) VALUES (%s, %s, %s)", (name, email, hashed_password))
             conn.commit()
 
             # Log in the new user automatically
@@ -131,10 +134,12 @@ def login():
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT id, name FROM users WHERE email = %s AND password = %s", (email, password))
+            # --- FIX: Fetch the HASHED password from the database ---
+            cursor.execute("SELECT id, name, password FROM users WHERE email = %s", (email,))
             user = cursor.fetchone()
 
-            if user:
+            # --- FIX: Use check_password_hash to verify the password ---
+            if user and check_password_hash(user['password'], password):
                 session['email'] = email
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
@@ -396,7 +401,6 @@ def select_food():
             )
 
         conn.commit()
-        flash(f"Food items for {theme_name} saved successfully.", 'success')
     except Exception as e:
         if conn:
             conn.rollback()
@@ -405,6 +409,7 @@ def select_food():
         if cursor: cursor.close()
         if conn: conn.close()
 
+    flash(f"Food items for {theme_name} saved successfully.", 'success')
     return redirect(url_for('foodmenu', theme=theme_name))
 
 @app.route('/booking')
@@ -422,23 +427,26 @@ def booking():
         conn = get_db_connection()
         cursor = conn.cursor()
 
+        # Fetch selected theme
         cursor.execute("SELECT t.id, t.name FROM selected_theme st JOIN themes t ON st.theme_id = t.id WHERE st.user_id = %s", (user_id,))
         selected_theme_data = cursor.fetchone()
         selected_theme = (selected_theme_data['id'], selected_theme_data['name']) if selected_theme_data else None
 
-        cursor.execute("SELECT decor_id, price FROM selected_decor WHERE user_id = %s", (user_id,))
+        # Fetch selected decor and calculate price
+        cursor.execute("SELECT decor_type, price FROM selected_decor WHERE user_id = %s", (user_id,))
         selected_decor_with_price = cursor.fetchall()
         
         selected_decor = []
         for decor_item in selected_decor_with_price:
             try:
-                price_str = str(decor_item['price']).replace('₹', '').replace(',', '')
+                price_str = str(decor_item['price']).replace('₹', '').replace(',', '').strip()
                 price_decimal = Decimal(price_str)
                 total_amount += price_decimal
-                selected_decor.append((decor_item['decor_id'], 'N/A', decor_item['price'])) # Decor type is not in selected_decor table
+                selected_decor.append((decor_item['decor_type'], decor_item['price']))
             except Exception as e:
                 print(f"Error converting decor price: {e}")
 
+        # Fetch selected food and calculate price
         cursor.execute("SELECT food_id FROM selected_food WHERE user_id = %s", (user_id,))
         selected_food_ids = [row['food_id'] for row in cursor.fetchall()]
 
@@ -451,7 +459,7 @@ def booking():
 
         for food_item in selected_food:
             try:
-                price_str = str(food_item['price']).replace('₹', '').replace(',', '')
+                price_str = str(food_item['price']).replace('₹', '').replace(',', '').strip()
                 price_decimal = Decimal(price_str)
                 total_amount += price_decimal
             except Exception as e:
@@ -677,7 +685,9 @@ def reset_token(token):
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("UPDATE users SET password = %s WHERE id = %s", (password, user['id']))
+            # --- FIX: Hash the new password before updating it ---
+            hashed_password = generate_password_hash(password)
+            cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_password, user['id']))
             conn.commit()
             flash('Your password has been updated! You can now log in.', 'success')
             return redirect(url_for('login'))
