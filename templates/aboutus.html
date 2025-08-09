@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Plan N Book</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 12px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            color: #5a4234;
+        }
+
+        .nav-links a {
+            margin-left: 18px;
+            text-decoration: none;
+            color: #5a4234;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #a67c52;
+        }
+
+        .about-us-container {
+            max-width: 960px;
+            margin: 50px auto;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .about-us-container h1, .about-us-container h2 {
+            font-family: 'Playfair Display', serif;
+            color: #2c2c2c;
+            text-align: center;
+        }
+
+        .about-us-container h1 {
+            font-size: 44px;
+            margin-bottom: 10px;
+        }
+
+        .about-us-container h2 {
+            font-size: 32px;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            color: #a67c52;
+        }
+
+        .intro-text {
+            font-size: 18px;
+            line-height: 1.8;
+            color: #555;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-divider {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), #a67c52, rgba(0, 0, 0, 0));
+            margin: 50px 0;
+        }
+
+        .content-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .content-section img {
+            max-width: 45%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .content-section.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .text-content {
+            flex-grow: 1;
+            font-size: 16px;
+            line-height: 1.7;
+            text-align: justify;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">Plan N Book</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/aboutus">About Us</a>
+            </div>
+    </nav>
+
+    <div class="about-us-container">
+        <h1>About Plan N Book</h1>
+        <p class="intro-text">
+            At Plan N Book, we believe that every event is a story waiting to be told. Our mission is to provide a seamless and inspiring platform that empowers you to design, plan, and book your dream events with confidence and joy.
+        </p>
+
+        <hr class="section-divider">
+
+        <h2>Our Mission & Vision</h2>
+        <div class="content-section">
+            <div class="text-content">
+                <p>
+                    <strong>Our Mission:</strong> To simplify the event planning process by offering a curated selection of themes, decor, and culinary options in one intuitive platform. We aim to take the stress out of organizing, allowing our clients to focus on celebrating life's most precious moments.
+                </p>
+                <p>
+                    <strong>Our Vision:</strong> To become the leading event planning partner, celebrated for our innovative approach, exceptional service, and commitment to creating memorable experiences that last a lifetime. We envision a world where planning a party is just as fun as attending one.
+                </p>
+            </div>
+            <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070" alt="Team members collaborating">
+        </div>
+
+        <hr class="section-divider">
+
+        <h2 style="text-align: center;">Why Choose Us?</h2>
+        <div class="content-section reverse">
+            <div class="text-content">
+                <p>
+                    We combine technology with a personal touch. Our platform is designed for ease of use, allowing you to browse and book everything you need. However, we also understand that some moments require a human touch. That's why our dedicated team of experienced planners is always ready to assist you in bringing your unique vision to life. From the first click to the final dance, we are with you every step of the way.
+                </p>
+            </div>
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070" alt="Team collaborating on a project">
+        </div>
+    </div>
+
+</body>
+</html>

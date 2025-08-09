@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+venv/  # <--- Make sure this line is present
+.env
+
+# Flask specific
+instance/
+
+# Database (XAMPP MySQL)
+*.sql

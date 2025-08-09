@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Plan N Book</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="/static/images/logop.jpg">
   <link rel="stylesheet" href="/static/css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
 
-  <!-- ✅ Flash Message Always Visible (Top Center) -->
   {% with messages = get_flashed_messages() %}
     {% if messages %}
-      <div class="flash-message" style="color: rgb(215, 61, 61); font-weight: 600; text-align: center; margin-top: 20px;">
+      <div class="flash-message">
         {{ messages[0] }}
       </div>
     {% endif %}
@@ -20,8 +20,10 @@
 
   <nav class="navbar">
     <div class="logo">Plan N Book</div>
+    <div class="hamburger-menu">&#9776;</div>
     <div class="nav-links">
       <a href="/">Home</a>
+      <a href="/aboutus">About Us</a>
       {% if 'email' in session %}
         <a href="/themes">Themes</a>
         <a href="/decor">Decor</a>
@@ -36,7 +38,6 @@
         <a href="#" class="login-trigger">Booking</a>
         <a href="#" class="login-trigger">Login</a>
         <a href="{{ url_for('register') }}">Register</a>
-        <a href="#" class="login-trigger">Admin</a>
       {% endif %}
     </div>
   </nav>
@@ -84,10 +85,8 @@
   </footer>
 
   {% if 'email' not in session %}
-    <!-- Modal Background -->
     <div id="modalBackground" class="modal-background"></div>
 
-    <!-- Login Modal -->
     <div id="loginModal" class="modal">
       <div class="modal-content">
         <span id="closeModal" class="close-button">&times;</span>
@@ -101,10 +100,14 @@
           <input type="password" name="password" required placeholder="Enter your password">
 
           <button type="submit">Login</button>
+          
+          <p style="margin-top: 10px; font-size: 14px;">
+            <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+          </p>
 
           <p style="margin-top: 10px; font-size: 14px;">
             Not registered yet? 
-            <a href="{{ url_for('register') }}" style="color: #5a4234; text-decoration: underline;">Register here</a>
+            <a href="{{ url_for('register') }}">Register here</a>
           </p>
         </form>
       </div>
@@ -113,8 +116,15 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      const urlParams = new URLSearchParams(window.location.search);
-      const shouldLogin = urlParams.get("login");
+      const hamburger = document.querySelector(".hamburger-menu");
+      const navLinks = document.querySelector(".nav-links");
+
+      if (hamburger && navLinks) {
+        hamburger.addEventListener("click", () => {
+          navLinks.classList.toggle("active");
+          hamburger.textContent = navLinks.classList.contains("active") ? "✖" : "☰";
+        });
+      }
 
       {% if 'email' not in session %}
       const loginLinks = document.querySelectorAll(".login-trigger");
@@ -123,46 +133,33 @@
       const closeBtn = document.getElementById("closeModal");
 
       loginLinks.forEach(link => {
-        link.addEventListener("click", function (e) {
+        link.addEventListener("click", e => {
           e.preventDefault();
           modal.style.display = "block";
           modalBg.style.display = "block";
         });
       });
 
-      closeBtn.addEventListener("click", function () {
+      closeBtn.addEventListener("click", () => {
         modal.style.display = "none";
         modalBg.style.display = "none";
       });
 
-      modalBg.addEventListener("click", function () {
+      modalBg.addEventListener("click", () => {
         modal.style.display = "none";
         modalBg.style.display = "none";
       });
-
-      if (shouldLogin === "true") {
-        modal.style.display = "block";
-        modalBg.style.display = "block";
-      }
       {% endif %}
-
-      // ✅ Auto-hide flash message or alert after 3 seconds
-      const fadeOut = (selector) => {
-        const el = document.querySelector(selector);
-        if (el) {
-          setTimeout(() => {
-            el.style.transition = 'opacity 0.5s ease';
-            el.style.opacity = '0';
-            setTimeout(() => el.remove(), 500);
-          }, 3000);
-        }
-      };
-
-      fadeOut('.flash-message');
-      fadeOut('.alert-banner');
     });
   </script>
+  <script>
+    setTimeout(function () {
+        var flash = document.querySelector('.flash-message');
+        if (flash) {
+            flash.style.display = 'none';
+        }
+    }, 3000);
+</script>
 
 </body>
 </html>
-

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reset Password - Plan N Book</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f2ef;
+      font-family: 'Open Sans', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .reset-container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .reset-container h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2em;
+      margin-bottom: 20px;
+      color: #5a4234;
+    }
+
+    .reset-container form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .reset-container input[type="password"] {
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+    }
+
+    .reset-container button {
+      padding: 12px;
+      background-color: #5a4234;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .reset-container button:hover {
+      background-color: #4a382c;
+    }
+
+    .flash-message {
+      color: rgb(10, 222, 24);
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="reset-container">
+    <h2>Reset Your Password</h2>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash-message">
+          {{ messages[0] }}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('reset_token', token=token) }}">
+      <input type="password" name="password" required placeholder="New Password">
+      <input type="password" name="confirm_password" required placeholder="Confirm New Password">
+      <button type="submit">Reset Password</button>
+    </form>
+  </div>
+
+</body>
+</html>

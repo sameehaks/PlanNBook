@@ -148,7 +148,7 @@
     <!-- Flash Message Block -->
     {% with messages = get_flashed_messages() %}
         {% if messages %}
-            <div class="flash-message" style="color: rgb(215, 61, 61); font-weight: 600; text-align: center; margin-top: 20px;">
+            <div class="flash-message" style="color: rgb(46, 214, 37); font-weight: 600; text-align: center; margin-top: 20px;">
                 {{ messages[0] }}
             </div>
         {% endif %}
@@ -249,5 +249,13 @@
             </div>
         </form>
     </div>
+    <script>
+        setTimeout(function () {
+            var flash = document.querySelector('.flash-message');
+            if (flash) {
+                flash.style.display = 'none';
+            }
+        }, 3000);
+    </script>
 </body>
 </html>

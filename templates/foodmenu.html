@@ -5,10 +5,11 @@
     <title>Food Menu - Plan N Book</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Open+Sans&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: 'Open Sans', sans-serif;
-            background: url('/static/images/food_menu/food_menu.jpg');
+            background: url('/static/images/food_menu/food1.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -144,12 +145,13 @@
         .save-button {
             text-align: center;
             margin-top: 20px;
+            margin-bottom: 10px; /* keep a little breathing room */
         }
 
         .save-button button {
             padding: 12px 25px;
             font-size: 16px;
-            background-color: #a67c52;
+            background-color: #9e5226;
             color: white;
             border: none;
             border-radius: 5px;
@@ -159,7 +161,7 @@
         }
 
         .save-button button:hover {
-            background-color: #8c6847;
+            background-color: #ba6b21;
         }
 
         .proceed-button-container {
@@ -170,15 +172,16 @@
         .proceed-button-container a {
             text-decoration: none;
             padding: 12px 25px;
-            background-color: #5a4234;
+            background-color: #9e5226;
             color: white;
             border-radius: 5px;
             font-weight: bold;
             transition: background-color 0.3s ease;
+            display: inline-block;
         }
 
         .proceed-button-container a:hover {
-            background-color: #3d2e24;
+            background-color: #8f4717;
         }
 
         .flash-message {
@@ -186,6 +189,34 @@
             color: green;
             font-weight: bold;
             margin-top: 20px;
+        }
+
+        /* === Mobile small fix: prevent overlap ===
+           Keep the proceed button fixed on mobile and add space
+           at the bottom of the container so "Save" does not get hidden.
+        */
+        @media (max-width: 768px) {
+            /* provide extra space so the Save button sits above fixed Proceed */
+            .food-menu-container {
+                padding-bottom: 120px; /* increase/decrease as needed */
+            }
+
+            /* fix proceed button to bottom on mobile for quick access */
+            .proceed-button-container {
+                position: fixed;
+                bottom: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                margin: 0;
+                z-index: 999;
+                width: auto;
+            }
+
+            .proceed-button-container a {
+                display: inline-block;
+                padding: 14px 28px;
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -243,7 +274,7 @@
                         <h4 class="category-heading">{{ category }}</h4>
                         {% for item in items %}
                             <div class="food-item">
-                                <input type="checkbox" name="food_ids" value="{{ item['id'] }}">
+                                <input type="checkbox" name="food_ids" value="{{ item['id'] }}" {% if item['id'] in selected_food_ids %}checked{% endif %}>
                                 <div class="item-details">
                                     <strong>{{ item['name'] }}</strong>
                                     <span class="price"> - ₹{{ item['price'] }}</span>
@@ -276,3 +307,4 @@
 
 </body>
 </html>
+

@@ -3,8 +3,22 @@ import pymysql
 from decimal import Decimal
 import datetime
 
+# --- Flask-Mail Imports and Configuration ---
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer as Serializer
+
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Set a strong, random secret key for session management
+app.secret_key = 'your_secret_key'
+app.config['SERVER_NAME'] = '127.0.0.1:5000'  # ✅ Important for correct email links
+  # Set a strong, random secret key for session management
+
+# Flask-Mail configuration - **Replace with your email and app password**
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'shammishaikh29@gmail.com'  # <-- Enter your email here
+app.config['MAIL_PASSWORD'] = 'xjampcbhpihlwvgw'   # <-- Enter your app password here
+mail = Mail(app)
 
 # --- Database Connection ---
 # Make sure to configure your database connection details here.
@@ -20,13 +34,46 @@ except Exception as e:
     print(f"Error connecting to database: {e}")
     # Consider handling this error gracefully, e.g., by exiting the app or showing a maintenance page.
 
+# --- Helper Functions ---
+# --- Helper Functions ---
+def get_reset_token(user_id, expires_sec=1800):
+    s = Serializer(app.secret_key)
+    return s.dumps({'user_id': user_id})
+
+
+def verify_reset_token(token):
+    s = Serializer(app.secret_key)
+
+    try:
+        user_id = s.loads(token)['user_id']
+    except:
+        return None
+    
+    cursor.execute("SELECT id, name, email, password FROM users WHERE id = %s", (user_id,))
+    user_data = cursor.fetchone()
+    
+    if user_data:
+        # Create a dictionary or object to represent the user for easier access
+        user = {
+            'id': user_data[0],
+            'name': user_data[1],
+            'email': user_data[2],
+            'password': user_data[3]
+        }
+        return user
+    return None
+
 # --- Routes ---
 
 @app.route('/')
 def home():
     """Renders the home page. This is the first page the user sees."""
-    # Assuming 'home.html' is a well-designed page as you mentioned.
     return render_template("home.html")
+
+@app.route('/aboutus')
+def aboutus():
+    """Renders the About Us page."""
+    return render_template("aboutus.html")
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -59,28 +106,32 @@ def register():
 
     return render_template("register.html")
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handles user login."""
-    email = request.form['email']
-    password = request.form['password']
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
 
-    if not email or not password:
-        flash("Please fill out all fields.")
-        return redirect(url_for('home'))
+        if not email or not password:
+            flash("Please fill out all fields.")
+            return redirect(url_for('home'))
 
-    cursor.execute("SELECT id, name FROM users WHERE email = %s AND password = %s", (email, password))
-    user = cursor.fetchone()
+        cursor.execute("SELECT id, name FROM users WHERE email = %s AND password = %s", (email, password))
+        user = cursor.fetchone()
 
-    if user:
-        session['email'] = email
-        session['user_id'] = user[0]
-        session['user_name'] = user[1] # Store user name in session for a better user experience
-        flash("Login successful!")
-        return redirect(url_for('home'))
-    else:
-        flash("Incorrect email or password. Please try again.")
-        return redirect(url_for('home'))
+        if user:
+            session['email'] = email
+            session['user_id'] = user[0]
+            session['user_name'] = user[1]
+            flash("Login successful!")
+            return redirect(url_for('home'))
+        else:
+            flash("Incorrect email or password. Please try again.")
+            return redirect(url_for('home'))
+
+    # If GET request, just show the homepage or login modal
+    return redirect(url_for('home'))
+
 
 @app.route('/logout')
 def logout():
@@ -99,8 +150,6 @@ def themes():
         return redirect(url_for('home'))
 
     user_id = session['user_id']
-
-    # Fetch all themes
     cursor.execute("SELECT id, name, description, image1, image2, image3 FROM themes")
     data = cursor.fetchall()
     themes = [
@@ -113,8 +162,6 @@ def themes():
             'image3': row[5]
         } for row in data
     ]
-
-    # Fetch the user's selected theme
     cursor.execute("SELECT theme_id FROM selected_theme WHERE user_id = %s", (user_id,))
     selected_ids = [row[0] for row in cursor.fetchall()]
 
@@ -132,7 +179,6 @@ def select_theme():
     action = request.form.get('action')
 
     if action == 'select':
-        # Clear previous selection and insert the new one
         cursor.execute("DELETE FROM selected_theme WHERE user_id = %s", (user_id,))
         cursor.execute("INSERT INTO selected_theme (user_id, theme_id) VALUES (%s, %s)", (user_id, theme_id))
         flash("Theme selected successfully.")
@@ -178,8 +224,6 @@ def select_decor():
 
     user_id = session['user_id']
     
-    # --- START OF FIX ---
-    # Validate that the user_id from the session actually exists in the database
     cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
     user_exists = cursor.fetchone()
     if not user_exists:
@@ -187,7 +231,6 @@ def select_decor():
         session.pop('user_id', None)
         session.pop('email', None)
         return redirect(url_for('home'))
-    # --- END OF FIX ---
 
     theme_name = request.form.get('theme')
     decor_type = request.form.get('decor_type')
@@ -232,8 +275,10 @@ def foodmenu():
     available_themes = [row[0] for row in cursor.fetchall()]
 
     menu = {}
+    selected_food_ids = []
 
     if selected_theme:
+        # Fetch food items for the selected theme
         cursor.execute("""
             SELECT id, theme_name, category, name, description, price
             FROM food_items
@@ -258,11 +303,20 @@ def foodmenu():
             }
             menu.setdefault(item['category'], []).append(item)
 
+        # Fetch the previously selected food items for the user and theme
+        cursor.execute("""
+            SELECT food_id
+            FROM selected_food
+            WHERE user_id = %s AND theme_name = %s
+        """, (user_id, selected_theme))
+        selected_food_ids = [row[0] for row in cursor.fetchall()]
+
     return render_template(
         "foodmenu.html",
         available_themes=available_themes,
         selected_theme=selected_theme,
-        menu=menu
+        menu=menu,
+        selected_food_ids=selected_food_ids  # Pass the list of selected IDs to the template
     )
 
 @app.route('/select_food', methods=['POST'])
@@ -276,7 +330,6 @@ def select_food():
     selected_food_ids = request.form.getlist('food_ids')
     theme_name = request.form.get('theme_name')
 
-    # Clear previous selection for the same theme
     cursor.execute("DELETE FROM selected_food WHERE user_id = %s AND theme_name = %s", (user_id, theme_name))
 
     for food_id in selected_food_ids:
@@ -299,12 +352,10 @@ def booking():
     user_id = session['user_id']
     total_amount = Decimal(0)
 
-    # Fetch selected theme details
     cursor.execute("SELECT t.id, t.name FROM selected_theme st JOIN themes t ON st.theme_id = t.id WHERE st.user_id = %s", (user_id,))
     selected_theme_data = cursor.fetchone()
     selected_theme = (selected_theme_data[0], selected_theme_data[1]) if selected_theme_data else None
 
-    # Fetch decor IDs and prices
     cursor.execute("SELECT decor_id, price FROM selected_decor WHERE user_id = %s", (user_id,))
     selected_decor_with_price = cursor.fetchall()
     
@@ -325,7 +376,6 @@ def booking():
             except Exception:
                 print(f"Error converting decor price for decor_id {decor_id}: {price}")
     
-    # Fetch food IDs and prices
     cursor.execute("SELECT food_id FROM selected_food WHERE user_id = %s", (user_id,))
     selected_food_ids = [row[0] for row in cursor.fetchall()]
 
@@ -372,7 +422,6 @@ def book_event():
     total_amount = Decimal(0)
     
     try:
-        # Fetch the selected theme ID
         cursor.execute("SELECT theme_id FROM selected_theme WHERE user_id = %s", (user_id,))
         theme_id_tuple = cursor.fetchone()
         theme_id = theme_id_tuple[0] if theme_id_tuple else None
@@ -381,7 +430,6 @@ def book_event():
             flash("Booking failed: No theme selected.")
             return redirect(url_for('booking'))
 
-        # Fetch decor IDs and prices and prepare for database storage
         cursor.execute("SELECT decor_id, price FROM selected_decor WHERE user_id = %s", (user_id,))
         selected_decor_raw = cursor.fetchall()
         decor_ids = [str(item[0]) for item in selected_decor_raw]
@@ -395,7 +443,6 @@ def book_event():
             except Exception as e:
                 print(f"Error processing decor price for decor_id {decor_id}: {e}")
                 
-        # Fetch food IDs and prices and prepare for database storage
         cursor.execute("SELECT food_id FROM selected_food WHERE user_id = %s", (user_id,))
         selected_food_ids_temp = [row[0] for row in cursor.fetchall()]
         selected_food_raw = []
@@ -414,7 +461,6 @@ def book_event():
             except Exception:
                 print(f"Error processing food price for food_item {food_item[0]}: {food_item[1]}")
 
-        # Insert booking into the 'bookings' table
         cursor.execute(
             """
             INSERT INTO bookings (
@@ -427,7 +473,7 @@ def book_event():
             (
                 user_id, theme_id, decor_id_string, food_ids_string, event_date, event_time, 
                 guests, your_location, event_address, notes, created_at, 
-                phone_number, total_amount # Initial payment status is 'pending'
+                phone_number, total_amount
             )
         )
         db.commit()
@@ -438,13 +484,12 @@ def book_event():
             flash("Booking failed: Could not create a booking ID.")
             return redirect(url_for('booking'))
 
-        # Clear user's current selections after successful booking
         cursor.execute("DELETE FROM selected_theme WHERE user_id = %s", (user_id,))
         cursor.execute("DELETE FROM selected_decor WHERE user_id = %s", (user_id,))
         cursor.execute("DELETE FROM selected_food WHERE user_id = %s", (user_id,))
         db.commit()
 
-        flash("Booking confirmed. Please proceed to payment.")
+        flash("Booking confirmed.")
         return redirect(url_for('payment', booking_id=booking_id))
     
     except Exception as e:
@@ -478,10 +523,62 @@ def payment(booking_id):
         return redirect(url_for('home'))
     
     total_amount, name, email = booking_data
-    # Calculate 10% advance payment
     advance_amount = total_amount * Decimal('0.10')
     
     return render_template("payment.html", booking_id=booking_id, total_amount=total_amount, advance_amount=advance_amount)
+
+# --- Password Reset Routes ---
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+        user_id_tuple = cursor.fetchone()
+
+        if user_id_tuple:
+            user_id = int(user_id_tuple[0])
+            token = get_reset_token(user_id)
+
+            reset_url = url_for('reset_token', token=token, _external=True)
+
+            msg = Message(
+                'Password Reset Request',
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[email]
+            )
+            msg.body = f'''To reset your password, visit the following link:
+{reset_url}
+
+If you did not make this request, simply ignore this email.
+'''
+            mail.send(msg)
+
+        flash('If your email is in our system, you will receive a password reset link shortly.')
+        return redirect(url_for('home'))  # or 'login' if you prefer
+
+@app.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    user = verify_reset_token(token)
+    if not user:
+        flash('That is an invalid or expired token.', 'warning')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return render_template('reset_token.html', token=token)
+
+        # Update the user's password in the database
+        cursor.execute("UPDATE users SET password = %s WHERE id = %s", (password, user['id']))
+        db.commit()
+        
+        flash('Your password has been updated! You can now log in.', 'success')
+        return redirect(url_for('login'))
+            
+    return render_template('reset_token.html', token=token)
 
 
 if __name__ == '__main__':
