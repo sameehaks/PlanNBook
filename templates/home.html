@@ -102,10 +102,6 @@
           <button type="submit">Login</button>
           
           <p style="margin-top: 10px; font-size: 14px;">
-            <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
-          </p>
-
-          <p style="margin-top: 10px; font-size: 14px;">
             Not registered yet? 
             <a href="{{ url_for('register') }}">Register here</a>
           </p>
@@ -154,10 +150,10 @@
   </script>
   <script>
     setTimeout(function () {
-        var flash = document.querySelector('.flash-message');
-        if (flash) {
-            flash.style.display = 'none';
-        }
+      var flash = document.querySelector('.flash-message');
+      if (flash) {
+        flash.style.display = 'none';
+      }
     }, 3000);
 </script>
 
